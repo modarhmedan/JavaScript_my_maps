@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>my map</title>
+    <link rel="stylesheet" href="css/style.css">
+  </head>
+  <body>
+    <div class="inputs">
+        <input type="text" id="addressD" value="Your location">
+        <input type="text" id="addressA">
+        <input id="submit" type="button" value="search">
+    </div>
+    <div id="map"></div>
+    <script>
+      function initMap() {
+        var location;
+        var clickIndex = 0;
+        var searchIndex = 0;
+        var markerClick;
+        var infowindow;
+        // Create a map object and specify the DOM element for display.
+        var map = new google.maps.Map(document.getElementById('map'), {
+          center: {lat: 48.8566, lng: 2.3522},
+          zoom: 8
+        });
+        if(navigator.geolocation){
+            navigator.geolocation.getCurrentPosition(onPositionReceived,locationNotReceived);
+        }
+        function onPositionReceived(positions){
+          location = new google.maps.LatLng(positions['coords']['latitude'],positions['coords']['longitude']);
+          var marker = new google.maps.Marker({
+            position:{lat:positions['coords']['latitude'],lng:positions['coords']['longitude']},
+            map:map,
+            icon:'https://assets.mapquestapi.com/icon/v2/via-blue-md.png'
+          });
+        }
+        function locationNotReceived(positionError){
+          console.log(positionError);
+        }
+        var searchBox = new google.maps.places.SearchBox(document.getElementById('addressA'));
+        var searchBox2 = new google.maps.places.SearchBox(document.getElementById('addressD'));
+        google.maps.event.addListener(map, 'click', function(event) {
+          var myLatLng = event.latLng;
+          infowindow = new google.maps.InfoWindow({
+            content: myLatLng.toString()
+          });
+          if(clickIndex != 0){
+            initMap();
+          }
+          clickIndex++;
+          markerClick = new google.maps.Marker({
+            position:{lat:myLatLng.lat(),lng:myLatLng.lng()},
+            map:map,
+            title: 'LatLng'
+          });
+          markerClick.addListener('click', function() {
+            infowindow.open(map, markerClick);
+          });
+        });
+        var geocoder = new google.maps.Geocoder();
+        document.getElementById('submit').addEventListener('click', function() {
+          var map = new google.maps.Map(document.getElementById('map'), {
+            center: {lat: 48.8566, lng: 2.3522},
+            zoom: 8
+          });
+          var pointA = document.getElementById('addressD').value;
+          if(pointA == "Your location"){
+            pointA = location;
+          }
+          var pointB = document.getElementById('addressA').value;
+          var directionsService = new google.maps.DirectionsService;
+          var directionsDisplay = new google.maps.DirectionsRenderer({
+            map: map
+          });
+          calculateAndDisplayRoute(directionsService, directionsDisplay, pointA, pointB);
+        });
+        function calculateAndDisplayRoute(directionsService, directionsDisplay, pointA, pointB) {
+            directionsService.route({
+              origin: pointA,
+              destination: pointB,
+              travelMode: google.maps.TravelMode.DRIVING
+            }, function(response, status) {
+              if (status == google.maps.DirectionsStatus.OK) {
+                directionsDisplay.setDirections(response);
+              } else {
+                window.alert('Directions request failed due to ' + status);
+              }
+            });
+          }
+
+      }
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyASuxAsUfWokzBMlBkUezmxV2z2KAlJRQg&callback=initMap&libraries=places"
+    async defer></script>
+  </body>
+</html>
